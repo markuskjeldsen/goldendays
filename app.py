@@ -184,6 +184,8 @@ def register():
             db.session.add(participant)
             db.session.commit()
             app.logger.info('Added participant #{}.'.format(participant.id))
+            print('participant added #{}'  .format(participant.id))
+
             
             
             
@@ -205,6 +207,7 @@ def register():
             except Exception as e:
              return str(e)
 
+            print('redirecting to payment')
             return redirect(checkout_session.url, code=303)
             
             
@@ -251,7 +254,7 @@ def register():
 
 
 
-@app.route('/stripe_webhook', methods=['POST'])
+@app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     print('WEBHOOK CALLED')
 
@@ -313,7 +316,7 @@ def stripe_webhook():
             #    participant.has_paid = True
             #    db.session.commit()
 
-    return {}, 300
+    return {},
 
 
 
