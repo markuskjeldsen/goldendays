@@ -18,8 +18,8 @@ import paypalrestsdk
 import pycountry
 import requests
 import stripe
-stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
 
+stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
 
 from assets import assets
 # noinspection PyUnresolvedReferences
@@ -54,6 +54,7 @@ app.register_blueprint(utilities)
 if not app.debug:
     import logging
     from logging.handlers import SMTPHandler
+
     mail_handler = SMTPHandler(
         mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
         fromaddr=app.config['ERROR_MAIL_SENDER'],
@@ -89,9 +90,8 @@ def check_date(f):
         if configuration.event_finished():
             return redirect(url_for('home'))
         return f(*args, **kwargs)
+
     return decorated_function
-
-
 
 
 @app.route('/checkout', methods=['POST'])
@@ -106,17 +106,14 @@ def create_checkout_session():
                 },
             ],
             mode='payment',
-            success_url= 'http://cphgoldendays.org/success.html',
-            cancel_url= 'http://cphgoldendays.org/cancel.html',
+            success_url='http://cphgoldendays.org/success.html',
+            cancel_url='http://cphgoldendays.org/cancel.html',
         )
     except Exception as e:
         return str(e)
 
     return redirect(checkout_session.url, code=303)
 
-	     
-	     
-	     
 
 @app.route('/')
 def home():
@@ -145,11 +142,12 @@ def register():
     faqs = FAQ.query.all()
     form = RegistrationForm()
     form.stake.choices = [(stake.id, stake.name) for stake in
-        Stake.query.all()]
-    form.country.choices = sorted([(country.alpha_2, country.name) for country in list(pycountry.countries)], key=country_sort_key)
+                          Stake.query.all()]
+    form.country.choices = sorted([(country.alpha_2, country.name) for country in list(pycountry.countries)],
+                                  key=country_sort_key)
     form.age.choices = [(x, x) for x in range(18, 31)]
     form.country.choices.insert(len(app.config['PINNED_COUNTRIES']), ('1', '-------------'))
-    form.country.choices.insert(0, ('0', '')) # Insert blank choice first in select
+    form.country.choices.insert(0, ('0', ''))  # Insert blank choice first in select
     form.stake.choices.insert(0, (0, ''))
     form.age.choices.insert(0, (0, ''))
     if form.validate_on_submit():
@@ -168,7 +166,8 @@ def register():
         if (not configuration.nordic_spots_left() and country in app.config['NORDIC_COUNTRIES']) or (
                 not configuration.international_spots_left() and country not in app.config['NORDIC_COUNTRIES']):
             app.logger.info('No spots left in region; registration aborted.')
-            flash("We're sorry, but we have no more spots left in your region. Stay tuned on Facebook for updates.", 'danger')
+            flash("We're sorry, but we have no more spots left in your region. Stay tuned on Facebook for updates.",
+                  'danger')
         else:
             participant = Participant(given_name=given_name,
                                       surname=surname,
@@ -180,78 +179,67 @@ def register():
                                       lactose_intolerant=lactose_intolerant,
                                       vegetarian=vegetarian,
                                       other_needs=other_needs
-                                     )
+                                      )
             db.session.add(participant)
             db.session.commit()
             app.logger.info('Added participant #{}.'.format(participant.id))
-            print('participant added #{}'  .format(participant.id))
+            print('participant added #{}'.format(participant.id))
 
-            
-            
-            
-            
             try:
-             checkout_session = stripe.checkout.Session.create(
-              line_items=[
-                {
-                   # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                   'price': 'price_1NEBh0AZeR2tEfU5tbNqUJJ2',
-                   'quantity': 1,
-                },
-              ],
-              mode='payment',
-              success_url= url_for('home', _external=True),
-              cancel_url= 'http://cphgoldendays.org/cancel.html',
-              client_reference_id= participant.id,
-             )
+                checkout_session = stripe.checkout.Session.create(
+                    line_items=[
+                        {
+                            # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
+                            'price': 'price_1NEBh0AZeR2tEfU5tbNqUJJ2',
+                            'quantity': 1,
+                        },
+                    ],
+                    mode='payment',
+                    success_url=url_for('home', _external=True),
+                    cancel_url='http://cphgoldendays.org/cancel.html',
+                    client_reference_id=participant.id,
+                )
             except Exception as e:
-             return str(e)
+                return str(e)
 
             print('redirecting to payment')
             return redirect(checkout_session.url, code=303)
-            
-            
-            
-            
-            
-            
 
-#            app.logger.info('Creating payment...')
-#            payment = paypalrestsdk.Payment({
-#                'intent': 'sale',
-#                'payer': {
-#                'payment_method': 'paypal'
-#                },
-#                'redirect_urls': {
-#                    'return_url': url_for('confirm_payment', _external=True),
-#                    'cancel_url': url_for('home', _external=True)
-#                },
-#                'transactions': [{
-#                    'amount': {
-#                        'total': configuration.price,
-#                        'currency': 'DKK'
-#                    },
-#                    'description': 'Golden Days {} admission'.format(configuration.start_datetime.year),
-#                    'custom': participant.id
-#                }]
-#            })
-#
-#            if payment.create():
-#                app.logger.info('Payment created.')
-#                for link in payment.links:
-#                    if link.method == 'REDIRECT':
-#                        redirect_url = str(link.href)
-#                        app.logger.info('Redirecting participant #{} to PayPal...'.format(
-#                            participant.id))
-#                        return redirect(redirect_url) # Redirect to PayPal.
-#            else:
-#                app.logger.error('Failed to create payment for participant #{}.'.format(participant.id))
-#                app.logger.error(payment.error)
-#                flash('Something went wrong—please try again. Contact us at contact@cphgoldendays.org if the problem persists.', 'danger')
+    #            app.logger.info('Creating payment...')
+    #            payment = paypalrestsdk.Payment({
+    #                'intent': 'sale',
+    #                'payer': {
+    #                'payment_method': 'paypal'
+    #                },
+    #                'redirect_urls': {
+    #                    'return_url': url_for('confirm_payment', _external=True),
+    #                    'cancel_url': url_for('home', _external=True)
+    #                },
+    #                'transactions': [{
+    #                    'amount': {
+    #                        'total': configuration.price,
+    #                        'currency': 'DKK'
+    #                    },
+    #                    'description': 'Golden Days {} admission'.format(configuration.start_datetime.year),
+    #                    'custom': participant.id
+    #                }]
+    #            })
+    #
+    #            if payment.create():
+    #                app.logger.info('Payment created.')
+    #                for link in payment.links:
+    #                    if link.method == 'REDIRECT':
+    #                        redirect_url = str(link.href)
+    #                        app.logger.info('Redirecting participant #{} to PayPal...'.format(
+    #                            participant.id))
+    #                        return redirect(redirect_url) # Redirect to PayPal.
+    #            else:
+    #                app.logger.error('Failed to create payment for participant #{}.'.format(participant.id))
+    #                app.logger.error(payment.error)
+    #                flash('Something went wrong—please try again. Contact us at contact@cphgoldendays.org if the problem persists.', 'danger')
 
     return render_template('register.html', configuration=configuration,
                            faqs=faqs, form=form, participants=participants)
-
 
 
 @app.route('/stripe-webhook', methods=['POST'])
@@ -265,13 +253,8 @@ def stripe_webhook():
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
     endpoint_secret = 'whsec_a00f7d87a1e500543c7d4e7fe3f2fd92ed2a62dfc04f8d281e530ea9186ae959'
     event = None
-    client_id = request.environ.get('client_reference.id')
-    cs_id = request.environ.get('id')
-    payment_status = request.environ.get('payment_status')
-       
-    
-    #participant = request.environ.get('customer')
-    
+
+    # participant = request.environ.get('customer')
 
     try:
         event = stripe.Webhook.construct_event(
@@ -292,34 +275,30 @@ def stripe_webhook():
         print(session)
         line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
         print(line_items['data'][0]['description'])
-        
-        
+        client_id = event["data"].object.client_reference_id
+        cs_id = event["data"].object.id
 
-
-        if payment_status == 'paid':
-         print("writing to database")
-         participant = Participant.query.get(int(client_id))
-         participant.payment_transaction_id = cs_id
-         participant.has_paid = True
-         db.session.commit()
+        if event["data"].object.payment_status == 'paid':
+            print("writing to database")
+            participant = Participant.query.get(int(client_id))
+            participant.payment_transaction_id = cs_id
+            participant.has_paid = True
+            db.session.commit()
         else:
-         print("hasnt paid")
-         participant = Participant.query.get(int(client_id))
-         participant.payment_transaction_id = cs_id
-         participant.has_paid = True
-         db.session.commit()
+            print("hasnt paid")
+            participant = Participant.query.get(int(client_id))
+            participant.payment_transaction_id = cs_id
+            participant.has_paid = True
+            db.session.commit()
 
-        #participant = Participant.query.get(int(participant_id))
-            #if participant:
-            #    participant.payment_transaction_id = transaction_id
-            #    participant.payment_date = payment_date
-            #    participant.has_paid = True
-            #    db.session.commit()
+        # participant = Participant.query.get(int(participant_id))
+        # if participant:
+        #    participant.payment_transaction_id = transaction_id
+        #    participant.payment_date = payment_date
+        #    participant.has_paid = True
+        #    db.session.commit()
 
     return {},
-
-
-
 
 
 @app.route('/confirm', methods=['GET', 'POST'])
@@ -344,11 +323,15 @@ def confirm_payment():
             return redirect(url_for('registration_success'))
         else:
             app.logger.warning('Payment #{} failed to execute.'.format(form.payment_id.data))
-            flash('Sorry, PayPal has rejected your payment. If you accidentally clicked twice, check the participants list in a minute or two—if you\'re on it, no worries! If not, please try again, perhaps with a different account or card. Contact us at contact@cphgoldendays.org if there are any issues.', 'danger')
+            flash(
+                'Sorry, PayPal has rejected your payment. If you accidentally clicked twice, check the participants list in a minute or two—if you\'re on it, no worries! If not, please try again, perhaps with a different account or card. Contact us at contact@cphgoldendays.org if there are any issues.',
+                'danger')
             return redirect(url_for('home'))
     elif form.is_submitted():
         app.logger.warning('Confirmation form did not validate.')
-        flash('An error occurred during payment. Check the participants list—if you\'re on it, no worries! If not, please try again. Contact us at contact@cphgoldendays.org if there are any issues.', 'danger')
+        flash(
+            'An error occurred during payment. Check the participants list—if you\'re on it, no worries! If not, please try again. Contact us at contact@cphgoldendays.org if there are any issues.',
+            'danger')
         return redirect(url_for('home'))
     return render_template('confirm_payment.html', configuration=configuration,
                            form=form)
@@ -410,7 +393,7 @@ def paypal_ipn_handler():
         configuration = Configuration.query.get(1)
         payment_status = params.get('payment_status')
         receiver_email = params.get('receiver_email')
-        payer_email =  request.form.get('payer_email')
+        payer_email = request.form.get('payer_email')
         transaction_id = params.get('txn_id')
         payment_date = dateutil.parser.parse(params.get('payment_date'))
         mc_gross = params.get('mc_gross')
@@ -442,7 +425,8 @@ def paypal_ipn_handler():
                     body='''Congratulations {} {}, your registration for Golden Days {} has been processed and you\'re ready to go!
 
 Feel free to contact us on Facebook or by replying to this mail. Your transaction ID is {}.
-                    '''.format(participant.given_name, participant.surname, configuration.start_datetime.year, transaction_id)
+                    '''.format(participant.given_name, participant.surname, configuration.start_datetime.year,
+                               transaction_id)
                 )
                 mail.send(confirmation_mail)
                 app.logger.info('Confirmation mail sent to {}.'.format(participant.email))
@@ -452,7 +436,7 @@ Feel free to contact us on Facebook or by replying to this mail. Your transactio
         app.logger.error('IPN: IPN string did not validate {}'.format(json.dumps(verify_params)))
 
     app.logger.info('Sending OK to PayPal.')
-    return jsonify({'status':'complete'})
+    return jsonify({'status': 'complete'})
 
 
 # Admin views
@@ -506,7 +490,6 @@ admin.add_view(SecureModelView(Stake, db.session))
 admin.add_view(SecureModelView(User, db.session))
 
 
-
 def init_db():
     """ Initialise database (run from a Python shell)
     """
@@ -526,7 +509,9 @@ def init_db():
             roles=['admin']
         )
 
-        stakes = [Stake(name=stake) for stake in ['København', 'Århus', 'Oslo', 'Drammen', 'Göteborg', 'Malmö', 'Stockholm Sweden', 'Stockholm Sweden South', 'Umeås District', 'Helsinki', 'Tampere', 'Pietarsaaren', 'Oulun', 'Other']]
+        stakes = [Stake(name=stake) for stake in
+                  ['København', 'Århus', 'Oslo', 'Drammen', 'Göteborg', 'Malmö', 'Stockholm Sweden',
+                   'Stockholm Sweden South', 'Umeås District', 'Helsinki', 'Tampere', 'Pietarsaaren', 'Oulun', 'Other']]
 
         configuration = Configuration(
             start_datetime=datetime.datetime(2017, 9, 15, 18, 0, 0),
@@ -750,7 +735,7 @@ Ironic. He could save others from death, but not himself.
 
         db.session.add_all(stakes)
         db.session.add_all([configuration, teaser1, teaser2, teaser3, faq1,
-            faq2, faq3, faq4, info1, info2, info3, info4, pi1, pi2, pi3, pi4,
-            pi5, pi6, pi7, pi8, pi9, pi10, pijoke, pi11, pi12, pi13, pi14, pi15,
-            pi16, pi17, pi18])
+                            faq2, faq3, faq4, info1, info2, info3, info4, pi1, pi2, pi3, pi4,
+                            pi5, pi6, pi7, pi8, pi9, pi10, pijoke, pi11, pi12, pi13, pi14, pi15,
+                            pi16, pi17, pi18])
         db.session.commit()
