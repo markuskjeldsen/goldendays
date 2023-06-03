@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Success!{{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="gold-container">
+    <div class="container">
+      <h1>{{ configuration.registration_success_title }}</h1>
+      {{ configuration.registration_success_instructions|markdown }}
+      <p class="success-fb-link"><a href="{{ configuration.facebook_url }}">
+        <i class="fa fa-facebook-square"></i> Facebook event
+      </a></p>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Location{{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="gold-container">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <h1>Location</h1>
+          {{ configuration.location_text|markdown }}
+        </div>
+        {% if configuration.google_maps_embed_link %}
+        <div class="col-md-6">
+          <div class="map embed-responsive embed-responsive-4by3">
+            <iframe class="embed-responsive-item" src="{{ configuration.google_maps_embed_link }}"></iframe>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

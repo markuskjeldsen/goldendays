@@ -1,0 +1,144 @@
+{% from "_macros.html" import render_field %}
+{% extends "base.html" %}
+
+{% block title %}Register{{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="gold-container">
+    <div class="container">
+      <div class="row registration-container">
+        <div class="col-sm-8 col-md-7">
+          <h1>Registration</h1>
+          {{ configuration.registration_introduction|markdown }}
+
+          <u>Nordic/Baltic spots left:</u> {{ configuration.nordic_spots_left() }}<br>
+          <u>International spots left:</u> {{ configuration.international_spots_left() }}
+
+          <div class="row">
+            <div class="col-sm-offset-1 col-sm-10">
+              <div class="transparent-container registration-form-container">
+                {% if not configuration.participant_limit_reached() %}
+                  <form class="form-horizontal" action="{{ url_for('register') }}" method="POST">
+                    {{ form.hidden_tag() }}
+                    {{ render_field(form.given_name) }}
+                    {{ render_field(form.surname) }}
+                    {{ render_field(form.email) }}
+                    {{ render_field(form.country) }}
+                    {{ render_field(form.stake) }}
+                    {{ render_field(form.age) }}
+                    <div class="form-group">
+                      <div class="col-sm-offset-4 col-sm-8 col-lg-offset-3 col-lg-9">
+                        <div class="checkbox">
+                          <label>
+                            {{ form.gluten_intolerant }} {{ form.gluten_intolerant.label.text }}
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label>
+                            {{ form.lactose_intolerant }} {{ form.lactose_intolerant.label.text }}
+                          </label>
+                        </div>
+                        <div class="checkbox">
+                          <label>
+                            {{ form.vegetarian }} {{ form.vegetarian.label.text }}
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                    {{ render_field(form.other_needs) }}
+                    {{ render_field(form.accept_code_of_conduct, text='I have read and accept the <a href="#code-of-conduct">Code of Conduct</a>.') }}
+                    <div class="form-group">
+                      <div class="col-sm-offset-4 col-sm-8 col-lg-offset-3 col-lg-9">
+                        <form action="localhost/checkout" method="POST">
+        		  <button type="submit" id="checkout-button">Checkout</button>
+      			</form>
+                      </div>
+                    </div>
+                  </form>
+                {% else %}
+                  <h2>We're full!</h2>
+                  <p>Sorry, but Golden Days is at capacity and cannot accept more registrations.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-4 col-md-offset-1 col-md-4" id="participants-column">
+          <h3>Participants</h3>
+          <button class="btn btn-primary btn-block visible-xs" id="participants-button"><span>Show</span><span class="hidden">Hide</span> participants</button>
+          <div class="participants-container hidden-xs">
+            <div class="participants-inner">
+              <ul class="list-unstyled">
+                {% for country in participants|groupby('country_name') %}
+                <li>
+                  <span>{{ country.grouper }}</span>
+                  <ul class="list-unstyled">
+                    {% for participant in country.list|sort(attribute='given_name') %}
+                      <li>{{ participant.given_name }} {{ participant.surname }}</li>
+                    {% endfor %}
+                  </ul>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="arrow-down hidden-xs hidden-sm">
+        <i class="fa fa-angle-down"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="container black-container">
+    <div class="row">
+      <div class="col-md-9">
+      {% if configuration.code_of_conduct %}
+        <div id="code-of-conduct">
+          <h1>Code of Conduct</h1>
+          {{ configuration.code_of_conduct|markdown }}
+        </div>
+      {% endif %}
+      {% if faqs %}
+        <div id="faq">
+          <h1>FAQ <small>Frequently asked questions</small></h1>
+          {% for faq in faqs|sort(attribute='position') %}
+            <div class="item" id="faq{{ faq.id }}">
+              <h3>{{ faq.question }}</h3>
+              {{ faq.answer|markdown }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      </div>
+      <div class="col-md-3">
+        <nav class="sidenav hidden-xs hidden-sm hidden-print">
+          <ul class="nav">
+            {% if configuration.code_of_conduct %}
+              <li>
+                <a href="#code-of-conduct">Code of Conduct</a>
+              </li>
+            {% endif %}
+            {% if faqs %}
+              <li>
+                <a href="#faq">FAQ</a>
+                <ul class="nav">
+                  {% for faq in faqs|sort(attribute='position') %}
+                    <li>
+                      <a href="#faq{{ faq.id }}">{{ faq.question }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </li>
+            {% endif %}
+          </ul>
+          <a href="#top" class="nav-back-to-top">Back to top</a>
+        </nav>
+      </div>
+    </div>
+    <div class="back-to-top">
+      <a href="#">Back to top</a>
+    </div>
+  </div>
+
+{% endblock %}

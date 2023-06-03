@@ -1,0 +1,86 @@
+{% from "_macros.html" import nav_link %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-43573214-2"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-43573214-2');
+    </script>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %} &middot; Golden Days{% endblock %}</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='img/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='img/favicon/manifest.json') }}">
+    <link rel="mask-icon" href="{{ url_for('static', filename='img/favicon/safari-pinned-tab.svg') }}" color="#c9a42d">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.ico') }}">
+    <meta name="msapplication-config" content="{{ url_for('static', filename='img/favicon/browserconfig.xml') }}">
+    <meta name="theme-color" content="#ffffff">
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,400i,700" rel="stylesheet">
+
+    {% assets 'bootstrapcss' %}
+      <link rel="stylesheet" href="{{ ASSET_URL }}">
+    {% endassets %}
+
+    {% assets 'css' %}
+      <link rel="stylesheet" href="{{ ASSET_URL }}">
+    {% endassets %}
+
+    <script src="https://use.fontawesome.com/e25d021d35.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-inverse">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav" aria-expanded="false">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="{{ url_for('home') }}">Golden Days</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="nav">
+          {% if not configuration.event_finished() %}
+            <ul class="nav navbar-nav">
+              {{ nav_link('register', 'Register') }}
+              {{ nav_link('information', 'Information') }}
+              {{ nav_link('location', 'Location') }}
+            </ul>
+          {% endif %}
+          <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+              {{ nav_link('admin.index', 'Admin') }}
+            {% endif %}
+            <li>
+              <a href="{{ configuration.facebook_url }}" class="facebook-logo" title="Check our Facebook event for the latest news!">
+                <i class="fa fa-facebook-square"></i>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    {% include "_messages.html" %} {# Flashed messages. #}
+    {% block content %}Empty template{% endblock %}
+
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/jquery.countdown.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+  </body>
+
+</html>

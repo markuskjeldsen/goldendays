@@ -1,0 +1,356 @@
+@import "../../bootstrap/less/variables.less";
+@import "../../bootstrap/custom_variables.less";
+
+
+blockquote {
+    border: none;
+}
+
+.text-center-xs {
+    @media (max-width: @screen-xs-max) {
+        text-align: center;
+    }
+}
+
+.golden {
+    color: @primary;
+}
+
+.arrow-down {
+    text-align: center;
+    i {
+        font-size: 42px;
+    }
+}
+
+.back-to-top {
+    text-align: center;
+    margin-bottom: 2em;
+}
+
+.navbar {
+    margin-bottom: 0;
+}
+
+.navbar-nav > li > a.facebook-logo {
+    padding: 8px 15px;
+    @media (max-width: @screen-xs-max) {
+        padding-top: 0;
+    }
+    i {
+        color: @navbar-inverse-brand-color;
+        font-size: 32px;
+    }
+}
+
+.alert-messages {
+    position: fixed;
+    z-index: 7000;
+    top: 55px;
+    @media (min-width: @screen-md-min) {
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
+
+.btn {
+    padding: 14px 24px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    &:hover {
+        color: gold;
+    }
+}
+
+.gold-container {
+    background: linear-gradient(135deg, lighten(spin(@primary, 7), 20%), lighten(spin(@primary, -12), 10%));
+    &:not(.jumbotron) {
+        padding-top: 10px;
+        padding-bottom: 30px;
+        margin-bottom: 40px;
+    }
+    a:not(.btn) {
+        color: lighten(@brand-primary, 10%);
+        font-weight: bold;
+        &:hover, &:focus {
+            color: darken(@brand-primary, 50%);
+        }
+    }
+}
+
+.black-container {
+    color: darken(@brand-secondary, 10%);
+    h1, h2, h3, h4, h5, h6 {
+        color: @brand-secondary;
+        small {
+            font-size: 45%;
+            margin-left: 0.2em;
+            color: darken(@brand-secondary, 20%);
+        }
+    }
+    // Used on the registration and information pages.
+    .item {
+        margin-bottom: 2.5em;
+    }
+}
+
+.transparent-container {
+    border-radius: 5px;
+    padding: 19px;
+    margin: 20px 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: darken(@brand-secondary, 5%);
+    a:not(.btn) {
+        color: @link-color;
+        &:hover, &:focus {
+            color: @link-hover-color;
+        }
+    }
+}
+
+@nav-padding-sides: 20px;
+
+.sidenav {
+    .nav {
+        li {
+            a {
+                display: block;
+                padding: 4px @nav-padding-sides;
+                color: darken(@brand-secondary, 20%);
+                &:hover, &:focus {
+                    padding-left: @nav-padding-sides - 1px;
+                    color: @primary;
+                    background-color: transparent;
+                    border-left: 1px solid @primary;
+                }
+            }
+            &.active > a,
+            &.active:hover > a,
+            &.active:focus > a {
+                padding-left: @nav-padding-sides - 2px;
+                font-weight: bold;
+                color: @primary;
+                background-color: transparent;
+                border-left: 2px solid @primary;
+            }
+            /* Second level */
+            .nav {
+                > li {
+                    a {
+                        padding-top: 1px;
+                        padding-bottom: 1px;
+                        padding-left: 1.5 * @nav-padding-sides;
+                        &:hover, &:focus {
+                            padding-left: 1.5 * @nav-padding-sides - 1px;
+                        }
+                    }
+                    &.active > a,
+                    &.active:hover > a,
+                    &.active:focus > a {
+                        padding-left: 1.5 * @nav-padding-sides - 2px;
+                        font-weight: normal;
+                    }
+                }
+            }
+        }
+    }
+    &.affix {
+        @media (min-width: @screen-md-min) {
+            width: 212.5px;
+        }
+        @media (min-width: @screen-lg-min) {
+            width: 262.5px;
+        }
+        top: 20px;
+    }
+    .nav-back-to-top {
+        display: block;
+        padding: 4px @nav-padding-sides;
+        margin-top: 10px;
+        color: darken(@brand-secondary, 40%);
+        &:hover {
+            color: @primary;
+        }
+    }
+}
+
+
+// Home page
+
+.logo {
+    @media (max-width: @screen-xs-max) {
+        width: 75%;
+    }
+}
+
+#countdown-wrapper {
+    display: inline-block;
+    .transparent-container;
+    h2 {
+        margin-top: 10px;
+        color: @brand-secondary;
+    }
+    .countdown {
+        text-align: center;
+        .item {
+            display: inline-block;
+            padding: 0 0.8em;
+            @media (min-width: @screen-sm-min) {
+                padding: 0 1.5em;
+            }
+            span {
+                font-size: 6em;
+                font-weight: bold;
+                color: @brand-secondary;
+            }
+            .label {
+                display: block;
+                font-size: 1.5em;
+                font-weight: normal;
+                color: fadeout(@brand-secondary, 40%);
+                padding: 0 0 20px;
+                margin-top: -0.5em;
+            }
+        }
+    }
+    @media (max-width: @screen-xs-max) {
+        padding: 10px;
+        h2 {
+            font-size: 6vw;
+        }
+        .countdown .item span:not(label) {
+            margin-bottom: -10px;
+            font-size: 12vw;
+        }
+    }
+    @media (max-width: @screen-sm-max) {
+        font-size: 10px;
+    }
+}
+
+
+// Registration page
+
+.registration-container {
+    @media (min-width: @screen-sm-min) {
+        display: flex;
+        #participants-column {
+            display: flex;
+            flex-direction: column;
+            .participants-container {
+                flex: 1;
+                position: relative;
+                min-height: 40em;
+                .participants-inner {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    padding: 15px;
+                }
+            }
+        }
+    }
+}
+
+.registration-form-container {
+    padding-top: 20px;
+    margin-bottom: 20px;
+}
+
+#participants-column {
+    margin-top: 10px;
+}
+
+.has-error {
+    label, .help-block {
+        color: lighten(#bb2e2e, 20%);
+    }
+    .form-control {
+        border-color: #bb2e2e;
+    }
+}
+
+.participants-container {
+    .transparent-container;
+    @media (max-width: @screen-xs-max) {
+        height: 80vh;
+    }
+    overflow-y: scroll;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    /* Track */
+    &::-webkit-scrollbar-track {
+        margin: 5px;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+    }
+
+    /* Handle */
+    &::-webkit-scrollbar-thumb {
+        opacity:0.1;
+        -webkit-border-radius: 10px;
+        border-radius: 10px;
+        background: rgba(0,0,0,0.5);
+        -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);
+    }
+
+    .participants-inner{
+        > ul > li {
+            margin-bottom: 1em;
+            > span {
+                color: @primary;
+                text-transform: uppercase;
+                font-size: 1.2em;
+            }
+        }
+    }
+}
+
+
+
+// Registration success page
+
+.success-fb-link a {
+    display: flex;
+    align-items: center;
+    margin-top: 1.6em;
+    margin-left: 2em;
+    i {
+        font-size: 2em;
+        margin-right: 0.3em;
+    }
+}
+
+
+
+// Information page
+
+.program-container {
+    h3 {
+        margin-top: 0;
+        margin-left: 0.4em;
+    }
+    .table td {
+        padding: 0.2em 0.5em;
+        border: none;
+        &.time {
+            width: 3em;
+            text-align: right;
+        }
+    }
+}
+
+
+
+// Location page
+
+.map {
+    margin-top: 20px;
+    box-shadow: 5px 5px 50px 0px rgba(0, 0, 0, 0.5);
+}

@@ -1,0 +1,96 @@
+{# Collection of macros used in templates. #}
+
+{# Renders a navigation link, marking it as active if it's the current page.
+
+   Args:
+      endpoint: Name of Flask endpoint.
+      name: Link text.
+#}
+{% macro nav_link(endpoint, name) %}
+  <li{% if request.endpoint.endswith(endpoint) %} class="active"{% endif%}><a href="{{ url_for(endpoint, **kwargs) }}">{{ name }}</a></li>
+{% endmacro %}
+
+
+{# Renders a form field with errors if any.
+
+   Args:
+      field: WTForms field to generate.
+      left_addon_glyph,
+      right_addon_glyph: An optional glyphicon input group addon. Use a
+                         glyphicon name as value.
+      left_addon_text,
+      right_addon_text: An optional text input group addon.
+      text: Label text override.
+      tooltip: Optional tooltip text.
+      plain: Don't use columns. Defaults to False.
+#}
+{% macro render_field(field, left_addon_glyph=None, left_addon_text=None, right_addon_glyph=None, right_addon_text=None, text=None, tooltip=None, plain=False) %}
+  {% if field.type == 'BooleanField' %}
+    <div class="form-group{% if field.errors %} has-error has-feedback{% endif %}">
+      {% if not plain %}
+        <div class="col-sm-offset-4 col-sm-8 col-lg-offset-3 col-lg-9">
+      {% endif %}
+
+        <div class="checkbox">
+          <label>
+            {{ field }} <span{% if tooltip %} class="dotted-underline" data-toggle="tooltip" title="{{ tooltip }}"{% endif %}>{% if text %}{{ text|safe }}{% else %}{{ field.label.text }}{% endif %}</span>
+          </label>
+        </div>
+
+        {% if field.errors %}
+          <div class="help-block">{{ field.errors|join(' ') }}</div>
+        {% endif %}
+
+      {% if not plain %}
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="form-group{% if field.errors %} has-error has-feedback{% endif %}">
+      {% if tooltip %}
+        {{ field.label(text=text, class="col-sm-4 col-lg-3 control-label dotted-underline", data_toggle="tooltip", title=tooltip) }}
+      {% elif plain %}
+        {{ field.label(text=text, class="control-label") }}
+      {% else %}
+        {{ field.label(text=text, class="col-sm-4 col-lg-3 control-label") }}
+      {% endif %}
+
+      {% if not plain %}
+        <div class="col-sm-8 col-lg-9">
+      {% endif %}
+
+        {% if left_addon_glyph or left_addon_text or right_addon_glyph or right_addon_text %}
+          <div class="input-group">
+        {% endif %}
+
+          {% if left_addon_glyph %}
+            <span class="input-group-addon"><span class="glyphicon glyphicon-{{ left_addon_glyph }}"></span></span>
+          {% endif %}
+
+          {% if left_addon_text %}
+            <span class="input-group-addon">{{ left_addon_text }}</span>
+          {% endif %}
+
+          {{ field(class="form-control", **kwargs) }} {# We pass any extra arguments specified to the field function, which accepts any HTML attribute. #}
+
+          {% if right_addon_glyph %}
+            <span class="input-group-addon"><span class="glyphicon glyphicon-{{ right_addon_glyph }}"></span></span>
+          {% endif %}
+
+          {% if right_addon_text %}
+            <span class="input-group-addon">{{ right_addon_text }}</span>
+          {% endif %}
+
+        {% if left_addon_glyph or left_addon_text or right_addon_glyph or right_addon_text %}
+          </div>
+        {% endif %}
+
+        {% if field.errors %}
+          <div class="help-block">{{ field.errors|join(' ') }}</div>
+        {% endif %}
+      {% if not plain %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}

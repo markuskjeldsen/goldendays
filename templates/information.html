@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Information{{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="gold-container">
+    <div class="container">
+      <h1>Program</h1>
+      <div class="row">
+        <div class="col-lg-offset-1 col-lg-10">
+          <div class="transparent-container program-container">
+            <div class="row">
+              {% for day in program_items|groupby('day') %}
+                <div class="col-sm-4">
+                  <h3>{{ day.grouper }}</h3>
+                  <table class="table">
+                    {% for item in day.list|sort(attribute='position') %}
+                      <tr>
+                        <td class="time">{{ item.time }}</td>
+                        <td>
+                          {% if item.information_item %}
+                            <a href="#information{{ item.information_item.id }}">
+                              {{ item.text }}
+                            </a>
+                          {% else %}
+                            {{ item.text }}
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </table>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if information_items %}
+    <div class="container black-container">
+      <div class="row">
+        <div class="col-md-9">
+          <h1>Information</h1>
+          {% for item in information_items|sort(attribute='position') %}
+            <div class="item" id="information{{ item.id }}">
+              <h3>{{ item.title }}</h3>
+              {{ item.text|markdown }}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="col-md-3">
+          <nav class="sidenav hidden-xs hidden-sm hidden-print">
+            <ul class="nav">
+              {% for item in information_items|sort(attribute='position') %}
+                <li>
+                  <a href="#information{{ item.id }}">{{ item.title }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+            <a href="#top" class="nav-back-to-top">Back to top</a>
+          </nav>
+        </div>
+      </div>
+      <div class="back-to-top">
+        <a href="#">Back to top</a>
+      </div>
+    </div>
+  {% endif %}
+
+{% endblock %}

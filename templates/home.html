@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Golden Days{% endblock %}
+
+{% block content %}
+  <div class="jumbotron gold-container">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-4 col-md-3 text-center">
+          <img class="logo" src="{{ url_for('static', filename='img/' + configuration.logo_filename) }}">
+        </div>
+        <div class="col-sm-8 col-md-9 text-center-xs">
+          <h1>{{ configuration.home_title }}</h1>
+          {{ home_text|markdown }}
+          {% if not configuration.event_finished() %}
+            <p><a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">
+              {% if not configuration.participant_limit_reached() %}Register
+              {% else %}Participants & FAQ
+              {% endif %}
+            </a></p>
+          {% endif %}
+        </div>
+      </div>
+      {% if not configuration.event_finished() %}
+        <div class="text-center">
+          <div id="countdown-wrapper">
+            <h2>Time till <span class="golden">Golden Days {{ configuration.start_datetime.year }}</span>:</h2>
+            <div id="countdown">{{ configuration.start_datetime.strftime('%Y-%m-%dT%H:%M:%S') }}+0200</div>
+          </div>
+                <form action="/create-checkout-session" method="POST">
+        <button type="submit" id="checkout-button">Checkout</button>
+      </form>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="container black-container">
+    <div class="row teasers">
+      {% for teaser in teasers|sort(attribute='position') %}
+        <div class="col-sm-4">
+          <h3>{{ teaser.title }}</h3>
+          {{ teaser.text|markdown }}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

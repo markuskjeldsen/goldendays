@@ -1,0 +1,27 @@
+{% from "_macros.html" import render_field %}
+{% extends 'admin/master.html' %}
+
+{% block body %}
+  <h1>Send custom email</h1>
+  <p>
+    Extremely primitive, but it works. Mails will be sent from
+    <strong>{{ sender_email }}</strong>.
+    Only one recipient email is supported, and the message body is in plaintext.
+  </p>
+  <div class="row">
+    <div class="col-sm-offset-1 col-sm-9 col-md-8 col-lg-7">
+      <form class="form-horizontal" method="POST">
+        {{ form.hidden_tag() }}
+        {{ render_field(form.recipient_email) }}
+        {{ render_field(form.subject) }}
+        {{ render_field(form.body, rows=10) }}
+        {{ render_field(form.send_to_self) }}
+        <div class="form-group">
+          <div class="col-sm-offset-4 col-sm-8 col-lg-offset-3 col-lg-9">
+            <input type="submit" value="Send" class="btn btn-primary btn-block">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}Confirm payment{{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="gold-container">
+    <div class="container">
+      <h1>{{ configuration.confirm_payment_title }}</h1>
+      {{ configuration.confirm_payment_instructions|markdown }}
+      <p><strong>
+        Click the button below to submit your payment of
+        {{ configuration.price }} DKK and complete your registration.
+      </strong></p>
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+          <div class="col-sm-offset-3 col-sm-6 col-md-offset-1 col-md-4 col-lg-offset-1 col-lg-3">
+            <input type="submit" value="Confirm" class="btn btn-primary btn-block">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
