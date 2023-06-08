@@ -195,8 +195,8 @@ def register():
                         },
                     ],
                     mode='payment',
-                    success_url=url_for('home', _external=True),
-                    cancel_url='http://cphgoldendays.org/cancel.html',
+                    success_url=url_for('registration_success', _external=True),
+                    cancel_url=url_for('registration_failure', _external=True),
                     client_reference_id=participant.id,
                 )
             except Exception as e:
