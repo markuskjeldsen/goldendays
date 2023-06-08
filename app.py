@@ -344,6 +344,11 @@ def registration_success():
     return render_template('registration_success.html',
                            configuration=configuration)
 
+@app.route('/failure')
+def registration_failure():
+    configuration = Configuration.query.get_or_404(1)
+    return render_template('registration_failure.html', configuration=configuration)
+
 
 @app.route('/information')
 @check_date
