@@ -93,28 +93,6 @@ def check_date(f):
 
     return decorated_function
 
-
-@app.route('/checkout', methods=['POST'])
-def create_checkout_session():
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[
-                {
-                    # Provide the exact Price ID (for example, pr_1234) of the product you want to sell
-                    'price': 'price_1NEBh0AZeR2tEfU5tbNqUJJ2',
-                    'quantity': 1,
-                },
-            ],
-            mode='payment',
-            success_url='http://cphgoldendays.org/success.html',
-            cancel_url='http://cphgoldendays.org/cancel.html',
-        )
-    except Exception as e:
-        return str(e)
-
-    return redirect(checkout_session.url, code=303)
-
-
 @app.route('/')
 def home():
     configuration = Configuration.query.get_or_404(1)

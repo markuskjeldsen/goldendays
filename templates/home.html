@@ -27,9 +27,6 @@
             <h2>Time till <span class="golden">Golden Days {{ configuration.start_datetime.year }}</span>:</h2>
             <div id="countdown">{{ configuration.start_datetime.strftime('%Y-%m-%dT%H:%M:%S') }}+0200</div>
           </div>
-                <form action="/create-checkout-session" method="POST">
-        <button type="submit" id="checkout-button">Checkout</button>
-      </form>
         </div>
       {% endif %}
     </div>
