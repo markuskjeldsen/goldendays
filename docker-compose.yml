@@ -1,27 +1,21 @@
 version: '3.3'
 
 services:
-goldendays:
-  build:
-    dockerfile: Dockerfile
+  goldendays:
+    build:
+      dockerfile: Dockerfile
 
 
-https-portal:
-  image: steveltn/https-portal:1
-  ports:
-    - 80:80
-    - 443:443
-  links:
-    - goldendays
-  # Restart https-portal on failure or after Docker host restart.
-  restart: always
-  environment:
-    # Forward wordpress.example.com to the WordPress container.
-    # You can set up multiple domains at once.
-    DOMAINS: 'cphgoldendays.org -> http://goldendays:8000'
-    STAGE: production
-    # Using staging server by default, for there is a rate limit on production.
-    # Uncomment to use Let's Encrypt production server.
-    # STAGE: production
-  volumes:
-    - https-portal-data:/var/lib/https-portal
+  https-portal:
+    image: steveltn/https-portal:1
+    ports:
+      - 80:80
+      - 443:443
+    links:
+      - goldendays
+    restart: always
+    environment:
+      DOMAINS: 'cphgoldendays.org -> http://goldendays:8000'
+      STAGE: production
+    volumes:
+      - ./tls-certs:/var/lib/https-portal
