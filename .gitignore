@@ -1,4 +1,5 @@
 __pycache__/
 venv
 app.log
-.idea/
+/tls-certs
+database.db
