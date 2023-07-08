@@ -94,6 +94,7 @@ class Configuration(db.Model):
     registration_introduction = db.Column(db.Text)
     registration_paypal_instructions = db.Column(db.Text)
     code_of_conduct = db.Column(db.Text)
+    data_privacy = db.Column(db.Text)
     confirm_payment_title = db.Column(db.String(100))
     confirm_payment_instructions = db.Column(db.Text)
     registration_success_title = db.Column(db.String(100))

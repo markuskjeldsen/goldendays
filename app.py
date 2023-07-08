@@ -20,6 +20,7 @@ import requests
 import stripe
 
 stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
+stripe_webhook_key = 'whsec_1mhxNxVcbygmYFkauaxtRFNFrHip4y6i'
 
 from assets import assets
 # noinspection PyUnresolvedReferences
@@ -229,7 +230,7 @@ def stripe_webhook():
         abort(400)
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = 'whsec_1mhxNxVcbygmYFkauaxtRFNFrHip4y6i'
+    endpoint_secret = stripe_webhook_key
     event = None
 
     # participant = request.environ.get('customer')
@@ -255,28 +256,21 @@ def stripe_webhook():
         print(line_items['data'][0]['description'])
         client_id = event["data"].object.client_reference_id
         cs_id = event["data"].object.id
+    if event["data"].object.payment_status == 'paid':
+        participant = Participant.query.get(int(client_id))
+        participant.payment_transaction_id = cs_id
+        participant.has_paid = True
+        db.session.commit()
+        print(participant.given_name, client_id, "has paid")
 
-        if event["data"].object.payment_status == 'paid':
-            print("writing to database")
-            participant = Participant.query.get(int(client_id))
-            participant.payment_transaction_id = cs_id
-            participant.has_paid = True
-            db.session.commit()
-        else:
-            print("hasnt paid")
-            participant = Participant.query.get(int(client_id))
-            participant.payment_transaction_id = cs_id
-            participant.has_paid = True
-            db.session.commit()
+    else:
+        participant = Participant.query.get(int(client_id))
+        participant.payment_transaction_id = cs_id
+        participant.has_paid = False
+        db.session.commit()
+        print(participant.given_name, client_id, "has not paid")
 
-        # participant = Participant.query.get(int(participant_id))
-        # if participant:
-        #    participant.payment_transaction_id = transaction_id
-        #    participant.payment_date = payment_date
-        #    participant.has_paid = True
-        #    db.session.commit()
-
-    return {},
+    return jsonify(success=True)
 
 
 @app.route('/confirm', methods=['GET', 'POST'])
@@ -491,14 +485,19 @@ def init_db():
             password=encrypt_password('9%jc5I$F5@Lfa1nkMN4VK8q1'),
             roles=['admin']
         )
+        user_datastore.create_user(
+            email='markus',
+            password=encrypt_password('markus'),
+            roles=['admin']
+        )
 
         stakes = [Stake(name=stake) for stake in
                   ['København', 'Århus', 'Oslo', 'Drammen', 'Göteborg', 'Malmö', 'Stockholm Sweden',
                    'Stockholm Sweden South', 'Umeås District', 'Helsinki', 'Tampere', 'Pietarsaaren', 'Oulun', 'Other']]
 
         configuration = Configuration(
-            start_datetime=datetime.datetime(2017, 9, 15, 18, 0, 0),
-            end_datetime=datetime.datetime(2017, 9, 17, 15, 0, 0),
+            start_datetime=datetime.datetime(2025, 9, 15, 18, 0, 0),
+            end_datetime=datetime.datetime(2025, 9, 17, 15, 0, 0),
             logo_filename='logo.svg',
             facebook_url='https://www.facebook.com/events/799249226906336',
             google_maps_embed_link='//www.google.com/maps/embed/v1/place?q=S%C3%B8parken+1,+3450+Liller%C3%B8d,%20DK&zoom=7&key=AIzaSyAU-0b7zY9vwc2HttbvlzKM6GbNl-Z8K3Y',
@@ -507,6 +506,7 @@ def init_db():
             home_text='Guess what? This text was loaded from a database! Soon enough, you\'ll even be able to edit it!',
             registration_introduction='The admission fee for Golden Days 2017 is 250 DKK. Make sure to read the [Code of Conduct](#code-of-conduct) and the [frequently asked questions](#faq) below, then sign up for a fantastic weekend!',
             registration_paypal_instructions='Once you submit your registration, you\'ll be taken to PayPal to process your payment. You **do not** need to have a PayPal account—a regular credit card will do!',
+            data_privacy='When agreeing to this you agree to us using, saving and posting yur name on this site',
             code_of_conduct='''I hereby agree to...
 
 * Be good
