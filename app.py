@@ -1,11 +1,9 @@
-from collections import OrderedDict
-import datetime
-from datetime import date
+from datetime import datetime
 from functools import wraps
-from itertools import chain
-import json
 
-import dateutil.parser
+import paypalrestsdk
+import pycountry
+import stripe
 from flask import (flash, Flask, jsonify, redirect, render_template, request,
                    url_for, abort)
 from flask_admin import Admin, BaseView, expose
@@ -15,13 +13,6 @@ from flask_migrate import Migrate
 from flask_misaka import Misaka
 from flask_security import current_user
 from flask_security.utils import encrypt_password, url_for_security
-import paypalrestsdk
-import pycountry
-import requests
-import stripe
-
-stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
-stripe_webhook_key = 'whsec_weKI7lRgza4tlzoZjlg30KbJfRufvf8T'
 
 from assets import assets
 # noinspection PyUnresolvedReferences
@@ -30,7 +21,10 @@ from db import (Configuration, db, FAQ, InformationItem, Participant,
                 ProgramItem, Stake, Teaser, User)
 from forms import ConfirmForm, CustomEmailForm, RegistrationForm
 from security import security, user_datastore
-from utilities import country_name, country_sort_key, ordered_storage, utilities
+from utilities import country_name, country_sort_key, utilities
+
+stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
+stripe_webhook_key = 'whsec_weKI7lRgza4tlzoZjlg30KbJfRufvf8T'
 
 app = Flask(__name__)
 if app.debug:
@@ -45,44 +39,8 @@ migrate = Migrate(app, db)
 mail = Mail(app)
 Misaka(app)
 security.init_app(app, datastore=user_datastore)
-paypalrestsdk.configure({
-    'mode': app.config['PAYPAL_MODE'],
-    'client_id': app.config['PAYPAL_CLIENT_ID'],
-    'client_secret': app.config['PAYPAL_SECRET']
-})
 
 app.register_blueprint(utilities)
-
-if not app.debug:
-    import logging
-    from logging.handlers import SMTPHandler
-
-    mail_handler = SMTPHandler(
-        mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
-        fromaddr=app.config['ERROR_MAIL_SENDER'],
-        toaddrs=app.config['ADMINS'],
-        subject='[Golden Days] Error',
-        credentials=(app.config['MAIL_USERNAME'], app.config['MAIL_PASSWORD']),
-        secure=()
-    )
-    mail_handler.setLevel(logging.ERROR)
-    mail_handler.setFormatter(logging.Formatter('''
-    Message type:       %(levelname)s
-    Location:           %(pathname)s:%(lineno)d
-    Module:             %(module)s
-    Function:           %(funcName)s
-    Time:               %(asctime)s
-
-    Message:
-
-    %(message)s
-    '''))
-    app.logger.addHandler(mail_handler)
-
-    file_handler = logging.FileHandler('app.log')
-    file_handler.setLevel(logging.INFO)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-    app.logger.addHandler(file_handler)
 
 
 def check_date(f):
@@ -160,7 +118,7 @@ def register():
                                       lactose_intolerant=lactose_intolerant,
                                       vegetarian=vegetarian,
                                       other_needs=other_needs,
-                                      payment_date=date.today()
+                                      payment_date=datetime.today()
                                       )
             db.session.add(participant)
             db.session.commit()
@@ -186,39 +144,6 @@ def register():
 
             print('redirecting to payment')
             return redirect(checkout_session.url, code=303)
-
-    #            app.logger.info('Creating payment...')
-    #            payment = paypalrestsdk.Payment({
-    #                'intent': 'sale',
-    #                'payer': {
-    #                'payment_method': 'paypal'
-    #                },
-    #                'redirect_urls': {
-    #                    'return_url': url_for('confirm_payment', _external=True),
-    #                    'cancel_url': url_for('home', _external=True)
-    #                },
-    #                'transactions': [{
-    #                    'amount': {
-    #                        'total': configuration.price,
-    #                        'currency': 'DKK'
-    #                    },
-    #                    'description': 'Golden Days {} admission'.format(configuration.start_datetime.year),
-    #                    'custom': participant.id
-    #                }]
-    #            })
-    #
-    #            if payment.create():
-    #                app.logger.info('Payment created.')
-    #                for link in payment.links:
-    #                    if link.method == 'REDIRECT':
-    #                        redirect_url = str(link.href)
-    #                        app.logger.info('Redirecting participant #{} to PayPal...'.format(
-    #                            participant.id))
-    #                        return redirect(redirect_url) # Redirect to PayPal.
-    #            else:
-    #                app.logger.error('Failed to create payment for participant #{}.'.format(participant.id))
-    #                app.logger.error(payment.error)
-    #                flash('Something went wrong—please try again. Contact us at contact@cphgoldendays.org if the problem persists.', 'danger')
 
     return render_template('register.html', configuration=configuration,
                            faqs=faqs, form=form, participants=participants)
@@ -362,67 +287,6 @@ def resetdb():
         pass
     init_db()
     return redirect(url_for('home'))
-"""
-
-"""
-@app.route('/ipn', methods=['POST'])
-@ordered_storage
-def paypal_ipn_handler():
-    app.logger.info('IPN received.')
-    params = request.form
-    verify_params = OrderedDict(chain(request.form.items(), (('cmd', '_notify-validate'),)))
-    app.logger.info('Sending IPN back to PayPal to verify...')
-    response = requests.post(app.config['IPN_URL'], data=verify_params)
-    status = response.text
-    if status == 'VERIFIED':
-        app.logger.info('IPN verified.')
-        configuration = Configuration.query.get(1)
-        payment_status = params.get('payment_status')
-        receiver_email = params.get('receiver_email')
-        payer_email = request.form.get('payer_email')
-        transaction_id = params.get('txn_id')
-        payment_date = dateutil.parser.parse(params.get('payment_date'))
-        mc_gross = params.get('mc_gross')
-        mc_currency = params.get('mc_currency')
-        participant_id = params.get('custom')
-        if payment_status != 'Completed':
-            app.logger.error('IPN: Payment not complete. {}'.format(json.dumps(verify_params)))
-        elif receiver_email != app.config['PAYPAL_EMAIL']:
-            app.logger.error('IPN: Receiver email did not match. {}'.format(json.dumps(verify_params)))
-        elif int(mc_gross.split('.')[0]) != configuration.price or mc_currency != 'DKK':
-            # The above trickery ignores the decimal places so we can compare
-            # with our price value, which is an integer.
-            app.logger.error('IPN: Price or currency did not match. {}'.format(json.dumps(verify_params)))
-        elif Participant.query.filter_by(payment_transaction_id=transaction_id).first():
-            app.logger.error('IPN: Transaction already handled. {}'.format(json.dumps(verify_params)))
-        elif not participant_id:
-            app.logger.error('IPN: Custom field (participant id) empty. {}'.format(json.dumps(verify_params)))
-        else:
-            participant = Participant.query.get(int(participant_id))
-            if participant:
-                participant.payment_transaction_id = transaction_id
-                participant.payment_date = payment_date
-                participant.has_paid = True
-                db.session.commit()
-                app.logger.info('Payment registered for participant #{}.'.format(participant.id))
-                confirmation_mail = Message(
-                    'Golden Days registration',
-                    recipients=[participant.email],
-                    body='''Congratulations {} {}, your registration for Golden Days {} has been processed and you\'re ready to go!
-
-Feel free to contact us on Facebook or by replying to this mail. Your transaction ID is {}.
-                    '''.format(participant.given_name, participant.surname, configuration.start_datetime.year,
-                               transaction_id)
-                )
-                mail.send(confirmation_mail)
-                app.logger.info('Confirmation mail sent to {}.'.format(participant.email))
-            else:
-                app.logger.error('IPN: Payment validated but participant not found!')
-    else:
-        app.logger.error('IPN: IPN string did not validate {}'.format(json.dumps(verify_params)))
-
-    app.logger.info('Sending OK to PayPal.')
-    return jsonify({'status': 'complete'})
 """
 
 
