@@ -5,7 +5,9 @@ services:
     build:
       dockerfile: Dockerfile
     volumes:
-     - ./database.db:/app/database.db
+      - type: bind
+        source: ./database.db
+        target: /app/database.db
 
 
 
@@ -22,3 +24,4 @@ services:
       STAGE: production
     volumes:
       - ./tls-certs:/var/lib/https-portal
+

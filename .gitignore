@@ -3,3 +3,9 @@ venv
 app.log
 /tls-certs
 database.db
+/.idea/.gitignore
+/.idea/goldendays.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/vcs.xml

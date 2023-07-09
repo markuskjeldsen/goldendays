@@ -21,7 +21,7 @@ import requests
 import stripe
 
 stripe.api_key = "sk_test_51N4OVqAZeR2tEfU5emP3XnJErDusheNj4fD06fVWkfxy2d0Q0WbKyB3xgySOOnnRpkgoXku7V633SJbcZM6GbndS00W5dPWAvP"
-stripe_webhook_key = 'whsec_1mhxNxVcbygmYFkauaxtRFNFrHip4y6i'
+stripe_webhook_key = 'whsec_weKI7lRgza4tlzoZjlg30KbJfRufvf8T'
 
 from assets import assets
 # noinspection PyUnresolvedReferences
@@ -94,6 +94,7 @@ def check_date(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
 
 @app.route('/')
 def home():
@@ -233,7 +234,6 @@ def stripe_webhook():
     payload = request.get_data()
     sig_header = request.environ.get('HTTP_STRIPE_SIGNATURE')
     endpoint_secret = stripe_webhook_key
-    event = None
 
     # participant = request.environ.get('customer')
 
@@ -251,13 +251,21 @@ def stripe_webhook():
         return {}, 400
 
     # Handle the checkout.session.completed event
+    if event['type'] == 'charge.succeeded':
+        print('charge succeeded')
     if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        print(session)
-        line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
-        print(line_items['data'][0]['description'])
-        client_id = event["data"].object.client_reference_id
-        cs_id = event["data"].object.id
+        checkout_session_completed(event)
+
+    return jsonify(success=True)
+
+
+def checkout_session_completed(event):
+    session = event['data']['object']
+    print(session)
+    line_items = stripe.checkout.Session.list_line_items(session['id'], limit=1)
+    print(line_items['data'][0]['description'])
+    client_id = event["data"].object.client_reference_id
+    cs_id = event["data"].object.id
     if event["data"].object.payment_status == 'paid':
         participant = Participant.query.get(int(client_id))
         participant.payment_transaction_id = cs_id
@@ -271,8 +279,6 @@ def stripe_webhook():
         participant.has_paid = False
         db.session.commit()
         print(participant.given_name, client_id, "has not paid")
-
-    return jsonify(success=True)
 
 
 @app.route('/confirm', methods=['GET', 'POST'])
@@ -317,6 +323,7 @@ def registration_success():
     configuration = Configuration.query.get_or_404(1)
     return render_template('registration_success.html',
                            configuration=configuration)
+
 
 @app.route('/failure')
 def registration_failure():
@@ -417,6 +424,7 @@ Feel free to contact us on Facebook or by replying to this mail. Your transactio
     app.logger.info('Sending OK to PayPal.')
     return jsonify({'status': 'complete'})
 """
+
 
 # Admin views
 class SecureModelView(ModelView):
