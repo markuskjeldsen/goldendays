@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import datetime
+from datetime import date
 from functools import wraps
 from itertools import chain
 import json
@@ -157,7 +158,8 @@ def register():
                                       gluten_intolerant=gluten_intolerant,
                                       lactose_intolerant=lactose_intolerant,
                                       vegetarian=vegetarian,
-                                      other_needs=other_needs
+                                      other_needs=other_needs,
+                                      payment_date=date.today()
                                       )
             db.session.add(participant)
             db.session.commit()
@@ -355,7 +357,7 @@ def resetdb():
     return redirect(url_for('home'))
 """
 
-
+"""
 @app.route('/ipn', methods=['POST'])
 @ordered_storage
 def paypal_ipn_handler():
@@ -414,7 +416,7 @@ Feel free to contact us on Facebook or by replying to this mail. Your transactio
 
     app.logger.info('Sending OK to PayPal.')
     return jsonify({'status': 'complete'})
-
+"""
 
 # Admin views
 class SecureModelView(ModelView):
